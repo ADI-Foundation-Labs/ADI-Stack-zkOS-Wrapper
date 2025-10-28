@@ -26,18 +26,18 @@ snark_wrapper = "=0.32.5"
 
 final_risc_verifier = { git = "https://github.com/ADI-Foundation-Labs/ADI-Stack-Airbender-System.git", package = "final_reduced_risc_v_machine_verifier", features = [
     "proof_utils",
-], tag = "v0.5.0-a" }
+], tag = "v0.5.0-b" }
 reduced_risc_verifier = { git = "https://github.com/ADI-Foundation-Labs/ADI-Stack-Airbender-System.git", package = "reduced_risc_v_log_23_machine_verifier", features = [
     "proof_utils",
-], tag = "v0.5.0-a" }
+], tag = "v0.5.0-b" }
 blake_verifier = { git = "https://github.com/ADI-Foundation-Labs/ADI-Stack-Airbender-System.git", package = "blake2_with_compression_verifier", features = [
     "proof_utils",
-], tag = "v0.5.0-a" }
-execution_utils = { git = "https://github.com/ADI-Foundation-Labs/ADI-Stack-Airbender-System.git", package = "execution_utils", tag = "v0.5.0-a" }
-setups = { git = "https://github.com/ADI-Foundation-Labs/ADI-Stack-Airbender-System.git", package = "setups", tag = "v0.5.0-a" }
-mersenne_field = { git = "https://github.com/ADI-Foundation-Labs/ADI-Stack-Airbender-System.git", package = "field", tag = "v0.5.0-a" }
-zkos_verifier_generator = { git = "https://github.com/ADI-Foundation-Labs/ADI-Stack-Airbender-System.git", package = "verifier_generator", tag = "v0.5.0-a" }
-prover = { git = "https://github.com/ADI-Foundation-Labs/ADI-Stack-Airbender-System.git", package = "prover", tag = "v0.5.0-a" }
+], tag = "v0.5.0-b" }
+execution_utils = { git = "https://github.com/ADI-Foundation-Labs/ADI-Stack-Airbender-System.git", package = "execution_utils", tag = "v0.5.0-b" }
+setups = { git = "https://github.com/ADI-Foundation-Labs/ADI-Stack-Airbender-System.git", package = "setups", tag = "v0.5.0-b" }
+mersenne_field = { git = "https://github.com/ADI-Foundation-Labs/ADI-Stack-Airbender-System.git", package = "field", tag = "v0.5.0-b" }
+zkos_verifier_generator = { git = "https://github.com/ADI-Foundation-Labs/ADI-Stack-Airbender-System.git", package = "verifier_generator", tag = "v0.5.0-b" }
+prover = { git = "https://github.com/ADI-Foundation-Labs/ADI-Stack-Airbender-System.git", package = "prover", tag = "v0.5.0-b" }
 
 serde_json = { version = "*" }
 serde = { version = "1", default-features = false, features = [
