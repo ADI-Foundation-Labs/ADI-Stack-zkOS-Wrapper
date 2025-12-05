@@ -10,9 +10,6 @@ It takes the zkos proof (in json format), and returns the snark proof going thro
 
 See the [docs](./docs/README.md).
 
-## Security
-
-See [SECURITY.md](./SECURITY.md).
 
 ## License
 
