@@ -33,7 +33,7 @@ cargo run --bin wrapper --release -- generate-snark-vk --input-binary {path to b
 Generated VK can be put into the solidity code.
 Or you can use era-boojum-verifier-cli tool to verify the proofs manually.
 
-**Note:** there are two versions of verifier programs set you can use for recursion: common or universal. See [execution_utils](https://github.com/matter-labs/zksync-airbender/blob/6a49503916f046d091e1f7134d80fe037ace8ec6/execution_utils/src/lib.rs#L29C1-L49C72). To activate universal verifier, you should add `--universal-verifier` flag to the VK generation commands above. Proving commands can identify used type from `risc_proof.json`, so you only need to specify it during VK generation.
+**Note:** there are two versions of verifier programs set you can use for recursion: common or universal. See [execution_utils](https://github.com/ADI-Foundation-Labs/ADI-Stack-Airbender-System/blob/6a49503916f046d091e1f7134d80fe037ace8ec6/execution_utils/src/lib.rs#L29C1-L49C72). To activate universal verifier, you should add `--universal-verifier` flag to the VK generation commands above. Proving commands can identify used type from `risc_proof.json`, so you only need to specify it during VK generation.
 
 ### Regenerating wrapper
 If you need to regenerate the wrapper, due to changes in the last airbender recursion circuit you can use the following command:

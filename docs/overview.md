@@ -2,7 +2,7 @@
 
 ## Why do we need this wrapper?
 
-In [airbender](https://github.com/matter-labs/zksync-airbender/tree/main) we can proof an arbitrary number of RiscV cycles with multiple proofs and compress them into a single proof with recursion. But when it come to L1 verification it could be expensive. So our purpose is to wrap the last airbender proof into Snark.
+In [airbender](https://github.com/ADI-Foundation-Labs/ADI-Stack-Airbender-System/tree/main) we can proof an arbitrary number of RiscV cycles with multiple proofs and compress them into a single proof with recursion. But when it come to L1 verification it could be expensive. So our purpose is to wrap the last airbender proof into Snark.
 We already use [Snark wrapper](https://github.com/matter-labs/zksync-crypto/tree/main/crates/snark-wrapper) to wrap boojum Stark proofs into Snark. So we only need to implement airbender -> boojum wrapper. So in the end our full wrapping pipeline will look like this:
 ![diagram](../diagram.svg)
 
