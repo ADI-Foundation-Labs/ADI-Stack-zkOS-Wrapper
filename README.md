@@ -6,13 +6,11 @@ It takes the zkos proof (in json format), and returns the snark proof going thro
 
 ![diagram](diagram.svg)
 
+ADI Stack utilizing the [MatterLabs zkOS stack](https://github.com/matter-labs/zkos-wrapper)
 ## Docs
 
 See the [docs](./docs/README.md).
 
-## Security
-
-See [SECURITY.md](./SECURITY.md).
 
 ## License
 
