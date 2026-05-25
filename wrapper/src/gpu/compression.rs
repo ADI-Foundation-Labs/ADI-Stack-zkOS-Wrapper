@@ -20,7 +20,7 @@ use shivini::{
 
 use crate::{
     CompressionCircuit, CompressionProof, CompressionTranscript, CompressionTreeHasher,
-    CompressionVK, RiscWrapperProof, RiscWrapperVK,
+    CompressionVK, RiscWrapperProof, RiscWrapperVK, gpu::context::apply_env_overrides,
 };
 
 type GL = GoldilocksField;
@@ -37,7 +37,9 @@ pub fn get_compression_setup(
 
     // Currently the GPU context is initialized here, but it should be done at a higher level.
     // For compression circuit, we actually have to set the domain size lower.
-    let config = ProverContextConfig::default().with_smallest_supported_domain_size(1 << 15);
+    let config = apply_env_overrides(
+        ProverContextConfig::default().with_smallest_supported_domain_size(1 << 15),
+    );
     let _prover_context = ProverContext::create_with_config(config).unwrap();
 
     let verify_inner_proof: bool = false;
@@ -98,7 +100,9 @@ pub fn prove_compression(
 
     // Currently the GPU context is initialized here, but it should be done at a higher level.
     // For compression circuit, we actually have to set the domain size lower.
-    let config = ProverContextConfig::default().with_smallest_supported_domain_size(1 << 15);
+    let config = apply_env_overrides(
+        ProverContextConfig::default().with_smallest_supported_domain_size(1 << 15),
+    );
     let _prover_context = ProverContext::create_with_config(config).unwrap();
 
     let verify_inner_proof = true;

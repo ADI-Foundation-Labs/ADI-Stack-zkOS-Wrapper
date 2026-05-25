@@ -12,12 +12,21 @@ use std::path::Path;
 
 use execution_utils::RecursionStrategy;
 use zkos_wrapper::{
-    deserialize_from_file, generate_and_save_risc_wrapper_vk, generate_vk, verification_hash,
+    deserialize_from_file, generate_and_save_risc_wrapper_vk, generate_vk,
+    gpu_config::{MAX_DEVICE_ALLOCATION_ENV, parse_byte_size},
+    verification_hash,
 };
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
 struct Cli {
+    /// Cap shivini's GPU device memory pool. Accepts decimal (`32G`, `32GB`) or
+    /// binary (`32Gi`, `32GiB`) Kubernetes-style sizes; bare integers are bytes.
+    /// When unset, falls back to the `ZKOS_WRAPPER_MAX_DEVICE_ALLOCATION` env var,
+    /// then to shivini's default (grab all free device memory).
+    #[arg(long, global = true, value_parser = parse_byte_size)]
+    max_device_allocation: Option<usize>,
+
     #[command(subcommand)]
     command: Commands,
 }
@@ -97,6 +106,18 @@ enum Commands {
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
+
+    // If the user passed --max-device-allocation, expose it to the lib via env var.
+    // The lib's gpu::context helper reads this at every ProverContext::create site.
+    // We never overwrite a value the user already set in the environment.
+    if let Some(bytes) = cli.max_device_allocation {
+        if std::env::var_os(MAX_DEVICE_ALLOCATION_ENV).is_none() {
+            // SAFETY: set_var is called before any thread spawns or any wrapper lib code runs.
+            unsafe {
+                std::env::set_var(MAX_DEVICE_ALLOCATION_ENV, bytes.to_string());
+            }
+        }
+    }
 
     match cli.command {
         Commands::ProveFull {
