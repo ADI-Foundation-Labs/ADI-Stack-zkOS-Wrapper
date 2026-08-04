@@ -4,9 +4,12 @@
 
 mod blake2_inner_verifier;
 pub mod circuits;
+pub mod gpu_config;
 pub mod transcript;
 mod wrapper_inner_verifier;
 pub mod wrapper_utils;
+
+pub use gpu_config::GpuContextConfig;
 
 #[cfg(feature = "gpu")]
 pub mod gpu;

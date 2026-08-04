@@ -20,7 +20,7 @@ use shivini::{
 
 use crate::{
     BinaryCommitment, RiscWrapper, RiscWrapperProof, RiscWrapperTranscript, RiscWrapperTreeHasher,
-    RiscWrapperVK, RiscWrapperWitness,
+    RiscWrapperVK, RiscWrapperWitness, gpu::context::build_prover_context_config,
 };
 
 type GL = GoldilocksField;
@@ -36,7 +36,8 @@ pub fn get_risc_wrapper_setup(
     let start = std::time::Instant::now();
 
     // Currently the GPU context is initialized here, but it should be done at a higher level.
-    let _prover_context = ProverContext::create().unwrap();
+    let _prover_context =
+        ProverContext::create_with_config(build_prover_context_config()).unwrap();
 
     let verify_inner_proof: bool = false;
     let circuit = RiscWrapper::new(None, verify_inner_proof, binary_commitment);
@@ -95,7 +96,8 @@ pub fn prove_risc_wrapper(
     let start = std::time::Instant::now();
 
     // Currently the GPU context is initialized here, but it should be done at a higher level.
-    let _prover_context = ProverContext::create().unwrap();
+    let _prover_context =
+        ProverContext::create_with_config(build_prover_context_config()).unwrap();
 
     let verify_inner_proof = true;
     let circuit = RiscWrapper::new(
