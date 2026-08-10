@@ -10,6 +10,8 @@ mod wrapper_inner_verifier;
 pub mod wrapper_utils;
 
 pub use gpu_config::GpuContextConfig;
+#[cfg(feature = "gpu")]
+pub use shivini::prover_stages::cancel;
 
 #[cfg(feature = "gpu")]
 pub mod gpu;
@@ -520,7 +522,7 @@ pub fn prove_risc_wrapper_with_snark(
     // TODO!: Remove by end of Q4 2025.
     // Currently in place to allow a easy revert in case ZK proving causes issues.
     use_zk: bool,
-) -> Result<(SnarkWrapperProof, SnarkWrapperVK), Box<dyn std::error::Error>> {
+) -> Result<Option<(SnarkWrapperProof, SnarkWrapperVK)>, Box<dyn std::error::Error>> {
     let worker = boojum::worker::Worker::new();
     println!("=== Phase 2: Creating compression proof");
 
@@ -528,14 +530,16 @@ pub fn prove_risc_wrapper_with_snark(
     let (compression_proof, compression_vk) = {
         let (setup, compression_vk, finalization) =
             gpu::compression::get_compression_setup(&worker, risc_wrapper_vk.clone());
-        let compression_proof = gpu::compression::prove_compression(
+        let Some(compression_proof) = gpu::compression::prove_compression(
             risc_wrapper_proof,
             risc_wrapper_vk.clone(),
             &finalization,
             &setup,
             &compression_vk,
             &worker,
-        );
+        ) else {
+            return Ok(None);
+        };
         (compression_proof, compression_vk)
     };
     #[cfg(not(feature = "gpu"))]
@@ -600,7 +604,7 @@ pub fn prove_risc_wrapper_with_snark(
             &crs_file,
             use_zk,
         );
-        Ok((proof, vk.clone()))
+        Ok(Some((proof, vk.clone())))
     }
     #[cfg(not(feature = "gpu"))]
     {
@@ -632,14 +636,14 @@ pub fn prove_risc_wrapper_with_snark(
             if !is_valid {
                 return Err("Snark wrapper proof is not valid".into());
             }
-            Ok((snark_wrapper_proof, snark_wrapper_vk))
+            Ok(Some((snark_wrapper_proof, snark_wrapper_vk)))
         }
     }
 }
 
 pub fn prove_fri_risc_wrapper(
     program_proof: ProgramProof,
-) -> Result<(RiscWrapperProof, RiscWrapperVK), Box<dyn std::error::Error>> {
+) -> Result<Option<(RiscWrapperProof, RiscWrapperVK)>, Box<dyn std::error::Error>> {
     println!("=== Phase 1: Creating the Risc wrapper proof");
 
     let worker = boojum::worker::Worker::new();
@@ -657,14 +661,16 @@ pub fn prove_fri_risc_wrapper(
     let (risc_wrapper_proof, risc_wrapper_vk) = {
         let (setup, risc_wrapper_vk, finalization_hint) =
             crate::gpu::risc_wrapper::get_risc_wrapper_setup(&worker, binary_commitment);
-        let risc_wrapper_proof = crate::gpu::risc_wrapper::prove_risc_wrapper(
+        let Some(risc_wrapper_proof) = crate::gpu::risc_wrapper::prove_risc_wrapper(
             risc_wrapper_witness,
             &finalization_hint,
             &setup,
             &risc_wrapper_vk,
             &worker,
             binary_commitment,
-        );
+        ) else {
+            return Ok(None);
+        };
         (risc_wrapper_proof, risc_wrapper_vk)
     };
 
@@ -700,7 +706,7 @@ pub fn prove_fri_risc_wrapper(
         return Err("Risc wrapper proof is not valid".into());
     }
 
-    Ok((risc_wrapper_proof, risc_wrapper_vk))
+    Ok(Some((risc_wrapper_proof, risc_wrapper_vk)))
 }
 
 pub fn prove(
@@ -716,8 +722,37 @@ pub fn prove(
     // Currently in place to allow a easy revert in case ZK proving causes issues.
     use_zk: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {
+    prove_cancellable(
+        input,
+        output_dir,
+        trusted_setup_file,
+        risc_wrapper_only,
+        #[cfg(feature = "gpu")]
+        precomputations,
+        use_zk,
+    )
+    .map(|proof| proof.expect("cancellation is disabled"))
+}
+
+/// As [`prove`], but returns `None` when proving stopped at a stage boundary because a
+/// cancel was requested through [`shivini::prover_stages::cancel`].
+pub fn prove_cancellable(
+    input: String,
+    output_dir: String,
+    trusted_setup_file: Option<String>,
+    risc_wrapper_only: bool,
+    #[cfg(feature = "gpu")] precomputations: Option<&(
+        PlonkSnarkVerifierCircuitDeviceSetupWrapper,
+        SnarkWrapperVK,
+    )>,
+    use_zk: bool,
+) -> Result<Option<()>, Box<dyn std::error::Error>> {
     let program_proof: crate::ProgramProof = deserialize_from_file(&input);
-    let (risc_wrapper_proof, risc_wrapper_vk) = prove_fri_risc_wrapper(program_proof).unwrap();
+    let Some((risc_wrapper_proof, risc_wrapper_vk)) =
+        prove_fri_risc_wrapper(program_proof).unwrap()
+    else {
+        return Ok(None);
+    };
 
     if risc_wrapper_only {
         serialize_to_file(
@@ -728,10 +763,10 @@ pub fn prove(
             &risc_wrapper_proof,
             &Path::new(&output_dir.clone()).join("risc_wrapper_proof.json"),
         );
-        return Ok(());
+        return Ok(Some(()));
     }
 
-    let (snark_wrapper_proof, snark_wrapper_vk) = prove_risc_wrapper_with_snark(
+    let Some((snark_wrapper_proof, snark_wrapper_vk)) = prove_risc_wrapper_with_snark(
         risc_wrapper_proof,
         risc_wrapper_vk,
         trusted_setup_file.clone(),
@@ -739,7 +774,9 @@ pub fn prove(
         precomputations,
         use_zk,
     )
-    .unwrap();
+    .unwrap() else {
+        return Ok(None);
+    };
 
     serialize_to_file(
         &snark_wrapper_proof,
@@ -750,7 +787,7 @@ pub fn prove(
         &Path::new(&output_dir.clone()).join("snark_vk.json"),
     );
 
-    Ok(())
+    Ok(Some(()))
 }
 
 pub fn generate_and_save_risc_wrapper_vk(

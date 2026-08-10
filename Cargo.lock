@@ -363,8 +363,7 @@ dependencies = [
 [[package]]
 name = "boojum-cuda"
 version = "0.155.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "39699de922ab1f1388b8ee03cfbcb73fa0e22fe42d9eb1aff74871bb6469ea2f"
+source = "git+https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git?branch=feature%2Fsnark_stage_observability#e43de541383e143c5bd6fd08fd12b3cc0e49f72f"
 dependencies = [
  "boojum",
  "cmake",
@@ -864,8 +863,7 @@ checksum = "877a4ace8713b0bcf2a4e7eec82529c029f1d0619886d18145fea96c3ffe5c0f"
 [[package]]
 name = "era_cudart"
 version = "0.155.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9e5bf69efd267a3a65033033d994156574656d0277a6fbe284ca499aaf5195a3"
+source = "git+https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git?branch=feature%2Fsnark_stage_observability#e43de541383e143c5bd6fd08fd12b3cc0e49f72f"
 dependencies = [
  "bitflags",
  "era_cudart_sys",
@@ -875,8 +873,7 @@ dependencies = [
 [[package]]
 name = "era_cudart_sys"
 version = "0.155.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "485a36609786334e488623fb5b73408c1010149e5c7c79973c6bf3f551825cb3"
+source = "git+https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git?branch=feature%2Fsnark_stage_observability#e43de541383e143c5bd6fd08fd12b3cc0e49f72f"
 dependencies = [
  "regex-lite",
 ]
@@ -957,8 +954,7 @@ dependencies = [
 [[package]]
 name = "fflonk-cuda"
 version = "0.155.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b018538405394dfafefc0e45a7d129d9cad3391ba5ff8bf0d79b903a8c20f6e7"
+source = "git+https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git?branch=feature%2Fsnark_stage_observability#e43de541383e143c5bd6fd08fd12b3cc0e49f72f"
 dependencies = [
  "bincode",
  "byteorder",
@@ -1958,8 +1954,7 @@ dependencies = [
 [[package]]
 name = "proof-compression"
 version = "0.155.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d37fc225d0f7be0a4782cda74747c4477c85a98516fba90991c334fb109465d0"
+source = "git+https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git?branch=feature%2Fsnark_stage_observability#e43de541383e143c5bd6fd08fd12b3cc0e49f72f"
 dependencies = [
  "anyhow",
  "bincode",
@@ -2539,8 +2534,7 @@ dependencies = [
 [[package]]
 name = "shivini"
 version = "0.155.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "35a99376a4c7546770c86ccdfcc022781bfb7b47a66d3bfaba3657a432c4b037"
+source = "git+https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git?branch=feature%2Fsnark_stage_observability#e43de541383e143c5bd6fd08fd12b3cc0e49f72f"
 dependencies = [
  "bincode",
  "boojum",
@@ -2554,6 +2548,7 @@ dependencies = [
  "rand 0.8.5",
  "serde",
  "smallvec",
+ "zksync-prover-stages",
 ]
 
 [[package]]
@@ -3213,8 +3208,7 @@ dependencies = [
 [[package]]
 name = "zksync-gpu-ffi"
 version = "0.155.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3e6097868c0cacb5d0e44dfe9c14d307985dae6e9ffe117954697d6a7390a027"
+source = "git+https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git?branch=feature%2Fsnark_stage_observability#e43de541383e143c5bd6fd08fd12b3cc0e49f72f"
 dependencies = [
  "cmake",
  "crossbeam",
@@ -3228,8 +3222,7 @@ dependencies = [
 [[package]]
 name = "zksync-gpu-prover"
 version = "0.155.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7214971d06f15edbd963a43feff5c54cda29687ff6e67fd09c430043158c6f10"
+source = "git+https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git?branch=feature%2Fsnark_stage_observability#e43de541383e143c5bd6fd08fd12b3cc0e49f72f"
 dependencies = [
  "bit-vec 0.6.3",
  "cfg-if",
@@ -3240,6 +3233,15 @@ dependencies = [
  "rand 0.4.6",
  "serde",
  "zksync-gpu-ffi",
+ "zksync-prover-stages",
+]
+
+[[package]]
+name = "zksync-prover-stages"
+version = "0.155.2"
+source = "git+https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git?branch=feature%2Fsnark_stage_observability#e43de541383e143c5bd6fd08fd12b3cc0e49f72f"
+dependencies = [
+ "tracing",
 ]
 
 [[package]]

@@ -15,7 +15,7 @@ use shivini::{
     ProverContext, ProverContextConfig,
     cs::{GpuSetup, gpu_setup_and_vk_from_base_setup_vk_params_and_hints},
     gpu_proof_config::GpuProofConfig,
-    gpu_prove_from_external_witness_data,
+    gpu_prove_from_external_witness_data_cancellable,
 };
 
 use crate::{
@@ -95,7 +95,7 @@ pub fn prove_compression(
     gpu_setup: &GpuSetup<CompressionTreeHasher>,
     gpu_vk: &CompressionVK,
     worker: &Worker,
-) -> CompressionProof {
+) -> Option<CompressionProof> {
     let start = std::time::Instant::now();
 
     // Currently the GPU context is initialized here, but it should be done at a higher level.
@@ -134,7 +134,7 @@ pub fn prove_compression(
 
     let proof_config = CompressionCircuit::get_proof_config();
 
-    let proof = gpu_prove_from_external_witness_data::<
+    let proof = gpu_prove_from_external_witness_data_cancellable::<
         CompressionTranscript,
         CompressionTreeHasher,
         NoPow,
@@ -148,12 +148,12 @@ pub fn prove_compression(
         (),
         worker,
     )
-    .unwrap();
+    .unwrap()?;
 
     println!(
         "compression wrapper proving takes {} ms",
         start.elapsed().as_millis()
     );
 
-    proof.into()
+    Some(proof.into())
 }

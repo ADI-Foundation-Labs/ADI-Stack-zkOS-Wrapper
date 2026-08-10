@@ -15,7 +15,7 @@ use shivini::{
     ProverContext,
     cs::{GpuSetup, gpu_setup_and_vk_from_base_setup_vk_params_and_hints},
     gpu_proof_config::GpuProofConfig,
-    gpu_prove_from_external_witness_data,
+    gpu_prove_from_external_witness_data_cancellable,
 };
 
 use crate::{
@@ -36,8 +36,7 @@ pub fn get_risc_wrapper_setup(
     let start = std::time::Instant::now();
 
     // Currently the GPU context is initialized here, but it should be done at a higher level.
-    let _prover_context =
-        ProverContext::create_with_config(build_prover_context_config()).unwrap();
+    let _prover_context = ProverContext::create_with_config(build_prover_context_config()).unwrap();
 
     let verify_inner_proof: bool = false;
     let circuit = RiscWrapper::new(None, verify_inner_proof, binary_commitment);
@@ -92,12 +91,11 @@ pub fn prove_risc_wrapper(
     gpu_vk: &RiscWrapperVK,
     worker: &Worker,
     binary_commitment: BinaryCommitment,
-) -> RiscWrapperProof {
+) -> Option<RiscWrapperProof> {
     let start = std::time::Instant::now();
 
     // Currently the GPU context is initialized here, but it should be done at a higher level.
-    let _prover_context =
-        ProverContext::create_with_config(build_prover_context_config()).unwrap();
+    let _prover_context = ProverContext::create_with_config(build_prover_context_config()).unwrap();
 
     let verify_inner_proof = true;
     let circuit = RiscWrapper::new(
@@ -118,6 +116,9 @@ pub fn prove_risc_wrapper(
     let builder = RiscWrapper::configure_builder(builder);
     let mut cs = builder.build(num_vars.unwrap());
     circuit.add_tables(&mut cs);
+    if shivini::prover_stages::cancel::requested().is_cancelled() {
+        return None;
+    }
     circuit.synthesize_into_cs(&mut cs);
     cs.pad_and_shrink_using_hint(finalization_hint);
     let cs = cs.into_assembly::<std::alloc::Global>();
@@ -128,7 +129,7 @@ pub fn prove_risc_wrapper(
 
     let proof_config = RiscWrapper::get_proof_config();
 
-    let proof = gpu_prove_from_external_witness_data::<
+    let proof = gpu_prove_from_external_witness_data_cancellable::<
         RiscWrapperTranscript,
         RiscWrapperTreeHasher,
         NoPow,
@@ -142,12 +143,12 @@ pub fn prove_risc_wrapper(
         (),
         worker,
     )
-    .unwrap();
+    .unwrap()?;
 
     println!(
         "risc wrapper proving takes {} ms",
         start.elapsed().as_millis()
     );
 
-    proof.into()
+    Some(proof.into())
 }
