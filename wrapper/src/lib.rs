@@ -659,8 +659,11 @@ pub fn prove_fri_risc_wrapper(
 
     #[cfg(feature = "gpu")]
     let (risc_wrapper_proof, risc_wrapper_vk) = {
-        let (setup, risc_wrapper_vk, finalization_hint) =
-            crate::gpu::risc_wrapper::get_risc_wrapper_setup(&worker, binary_commitment);
+        let Some((setup, risc_wrapper_vk, finalization_hint)) =
+            crate::gpu::risc_wrapper::get_risc_wrapper_setup(&worker, binary_commitment)
+        else {
+            return Ok(None);
+        };
         let Some(risc_wrapper_proof) = crate::gpu::risc_wrapper::prove_risc_wrapper(
             risc_wrapper_witness,
             &finalization_hint,
@@ -834,7 +837,8 @@ pub fn generate_risk_wrapper_vk(
 
     #[cfg(feature = "gpu")]
     let (_, risc_wrapper_vk, _) =
-        crate::gpu::risc_wrapper::get_risc_wrapper_setup(boojum_worker, binary_commitment);
+        crate::gpu::risc_wrapper::get_risc_wrapper_setup(boojum_worker, binary_commitment)
+            .expect("cancellation is disabled");
 
     #[cfg(not(feature = "gpu"))]
     let (_, _, _, risc_wrapper_vk, _, _, _) =
