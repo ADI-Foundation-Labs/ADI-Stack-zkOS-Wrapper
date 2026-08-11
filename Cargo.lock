@@ -363,7 +363,7 @@ dependencies = [
 [[package]]
 name = "boojum-cuda"
 version = "0.155.2"
-source = "git+https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git?branch=feature%2Fsnark_stage_observability#e43de541383e143c5bd6fd08fd12b3cc0e49f72f"
+source = "git+https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git?branch=feature%2Fsnark_stage_observability#e6572702af4d8d42e733b44ccd3421910e198f1a"
 dependencies = [
  "boojum",
  "cmake",
@@ -863,7 +863,7 @@ checksum = "877a4ace8713b0bcf2a4e7eec82529c029f1d0619886d18145fea96c3ffe5c0f"
 [[package]]
 name = "era_cudart"
 version = "0.155.2"
-source = "git+https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git?branch=feature%2Fsnark_stage_observability#e43de541383e143c5bd6fd08fd12b3cc0e49f72f"
+source = "git+https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git?branch=feature%2Fsnark_stage_observability#e6572702af4d8d42e733b44ccd3421910e198f1a"
 dependencies = [
  "bitflags",
  "era_cudart_sys",
@@ -873,7 +873,7 @@ dependencies = [
 [[package]]
 name = "era_cudart_sys"
 version = "0.155.2"
-source = "git+https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git?branch=feature%2Fsnark_stage_observability#e43de541383e143c5bd6fd08fd12b3cc0e49f72f"
+source = "git+https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git?branch=feature%2Fsnark_stage_observability#e6572702af4d8d42e733b44ccd3421910e198f1a"
 dependencies = [
  "regex-lite",
 ]
@@ -954,7 +954,7 @@ dependencies = [
 [[package]]
 name = "fflonk-cuda"
 version = "0.155.2"
-source = "git+https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git?branch=feature%2Fsnark_stage_observability#e43de541383e143c5bd6fd08fd12b3cc0e49f72f"
+source = "git+https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git?branch=feature%2Fsnark_stage_observability#e6572702af4d8d42e733b44ccd3421910e198f1a"
 dependencies = [
  "bincode",
  "byteorder",
@@ -1954,7 +1954,7 @@ dependencies = [
 [[package]]
 name = "proof-compression"
 version = "0.155.2"
-source = "git+https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git?branch=feature%2Fsnark_stage_observability#e43de541383e143c5bd6fd08fd12b3cc0e49f72f"
+source = "git+https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git?branch=feature%2Fsnark_stage_observability#e6572702af4d8d42e733b44ccd3421910e198f1a"
 dependencies = [
  "anyhow",
  "bincode",
@@ -1966,6 +1966,7 @@ dependencies = [
  "serde_json",
  "shivini",
  "zksync-gpu-prover",
+ "zksync-prover-stages",
 ]
 
 [[package]]
@@ -2534,7 +2535,7 @@ dependencies = [
 [[package]]
 name = "shivini"
 version = "0.155.2"
-source = "git+https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git?branch=feature%2Fsnark_stage_observability#e43de541383e143c5bd6fd08fd12b3cc0e49f72f"
+source = "git+https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git?branch=feature%2Fsnark_stage_observability#e6572702af4d8d42e733b44ccd3421910e198f1a"
 dependencies = [
  "bincode",
  "boojum",
@@ -3208,7 +3209,7 @@ dependencies = [
 [[package]]
 name = "zksync-gpu-ffi"
 version = "0.155.2"
-source = "git+https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git?branch=feature%2Fsnark_stage_observability#e43de541383e143c5bd6fd08fd12b3cc0e49f72f"
+source = "git+https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git?branch=feature%2Fsnark_stage_observability#e6572702af4d8d42e733b44ccd3421910e198f1a"
 dependencies = [
  "cmake",
  "crossbeam",
@@ -3222,7 +3223,7 @@ dependencies = [
 [[package]]
 name = "zksync-gpu-prover"
 version = "0.155.2"
-source = "git+https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git?branch=feature%2Fsnark_stage_observability#e43de541383e143c5bd6fd08fd12b3cc0e49f72f"
+source = "git+https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git?branch=feature%2Fsnark_stage_observability#e6572702af4d8d42e733b44ccd3421910e198f1a"
 dependencies = [
  "bit-vec 0.6.3",
  "cfg-if",
@@ -3239,7 +3240,7 @@ dependencies = [
 [[package]]
 name = "zksync-prover-stages"
 version = "0.155.2"
-source = "git+https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git?branch=feature%2Fsnark_stage_observability#e43de541383e143c5bd6fd08fd12b3cc0e49f72f"
+source = "git+https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git?branch=feature%2Fsnark_stage_observability#e6572702af4d8d42e733b44ccd3421910e198f1a"
 dependencies = [
  "tracing",
 ]

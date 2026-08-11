@@ -596,14 +596,16 @@ pub fn prove_risc_wrapper_with_snark(
             }
         };
 
-        let proof = crate::gpu::snark::gpu_snark_prove(
+        let Some(proof) = crate::gpu::snark::gpu_snark_prove(
             setup_data,
             vk,
             compression_proof,
             compression_vk,
             &crs_file,
             use_zk,
-        );
+        ) else {
+            return Ok(None);
+        };
         Ok(Some((proof, vk.clone())))
     }
     #[cfg(not(feature = "gpu"))]

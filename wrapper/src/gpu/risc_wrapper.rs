@@ -37,7 +37,7 @@ pub fn get_risc_wrapper_setup(
     let start = std::time::Instant::now();
     let mut stages = StageTimer::new();
 
-    stage(&mut stages, "setup_gpu_context")?;
+    stages.step("setup_gpu_context")?;
     // Currently the GPU context is initialized here, but it should be done at a higher level.
     let _prover_context = ProverContext::create_with_config(build_prover_context_config()).unwrap();
 
@@ -57,10 +57,10 @@ pub fn get_risc_wrapper_setup(
     let mut cs = builder.build(num_vars.unwrap());
     circuit.add_tables(&mut cs);
 
-    stage(&mut stages, "setup_synthesize")?;
+    stages.step("setup_synthesize")?;
     circuit.synthesize_into_cs(&mut cs);
 
-    stage(&mut stages, "setup_pad_and_shrink")?;
+    stages.step("setup_pad_and_shrink")?;
     let (_, finalization_hint) = cs.pad_and_shrink();
 
     let ProofConfig {
@@ -68,14 +68,14 @@ pub fn get_risc_wrapper_setup(
         merkle_tree_cap_size,
         ..
     } = RiscWrapper::get_proof_config();
-    stage(&mut stages, "setup_into_assembly")?;
+    stages.step("setup_into_assembly")?;
     let cs = cs.into_assembly::<std::alloc::Global>();
 
-    stage(&mut stages, "setup_light_setup")?;
+    stages.step("setup_light_setup")?;
     let (setup_base, vk_params, vars_hint, witness_hints) =
         cs.get_light_setup(worker, fri_lde_factor, merkle_tree_cap_size);
 
-    stage(&mut stages, "setup_gpu_setup_and_vk")?;
+    stages.step("setup_gpu_setup_and_vk")?;
     let (gpu_setup, gpu_vk) =
         gpu_setup_and_vk_from_base_setup_vk_params_and_hints::<RiscWrapperTreeHasher, _>(
             setup_base.clone(),
@@ -95,14 +95,6 @@ pub fn get_risc_wrapper_setup(
     Some((gpu_setup, gpu_vk, finalization_hint))
 }
 
-/// Reports a stage boundary; `None` means a cancel was requested and proving should stop.
-fn stage(stages: &mut StageTimer, name: &'static str) -> Option<()> {
-    if stages.enter(name).is_cancelled() {
-        return None;
-    }
-    Some(())
-}
-
 pub fn prove_risc_wrapper(
     risc_wrapper_witness: RiscWrapperWitness,
     finalization_hint: &FinalizationHintsForProver,
@@ -114,7 +106,7 @@ pub fn prove_risc_wrapper(
     let start = std::time::Instant::now();
     let mut stages = StageTimer::new();
 
-    stage(&mut stages, "prove_gpu_context")?;
+    stages.step("prove_gpu_context")?;
     // Currently the GPU context is initialized here, but it should be done at a higher level.
     let _prover_context = ProverContext::create_with_config(build_prover_context_config()).unwrap();
 
@@ -138,16 +130,16 @@ pub fn prove_risc_wrapper(
     let mut cs = builder.build(num_vars.unwrap());
     circuit.add_tables(&mut cs);
 
-    stage(&mut stages, "prove_synthesize")?;
+    stages.step("prove_synthesize")?;
     circuit.synthesize_into_cs(&mut cs);
 
-    stage(&mut stages, "prove_pad_and_shrink")?;
+    stages.step("prove_pad_and_shrink")?;
     cs.pad_and_shrink_using_hint(finalization_hint);
 
-    stage(&mut stages, "prove_into_assembly")?;
+    stages.step("prove_into_assembly")?;
     let cs = cs.into_assembly::<std::alloc::Global>();
 
-    stage(&mut stages, "prove_gpu")?;
+    stages.step("prove_gpu")?;
     let gpu_proof_config = GpuProofConfig::from_assembly(&cs);
 
     let external_witness_data = cs.witness.unwrap();
