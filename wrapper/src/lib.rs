@@ -727,6 +727,8 @@ pub fn prove(
     // Currently in place to allow a easy revert in case ZK proving causes issues.
     use_zk: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {
+    // A cancel is process-wide, so it can land in here too; report it rather than panic.
+    // The stage that stopped is named in the log line the checkpoint already wrote.
     prove_cancellable(
         input,
         output_dir,
@@ -735,8 +737,8 @@ pub fn prove(
         #[cfg(feature = "gpu")]
         precomputations,
         use_zk,
-    )
-    .map(|proof| proof.expect("cancellation is disabled"))
+    )?
+    .ok_or_else(|| "proving was cancelled at a stage boundary".into())
 }
 
 /// As [`prove`], but returns `None` when proving stopped at a stage boundary because a

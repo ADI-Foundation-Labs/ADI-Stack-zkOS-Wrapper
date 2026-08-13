@@ -115,7 +115,7 @@ pub fn gpu_snark_prove(
 ) -> Option<SnarkWrapperProof> {
     let mut stages = StageTimer::new();
 
-    stages.step("snark_load_crs")?;
+    stages.step("snark_load_crs").ok()?;
     let reader = std::fs::File::open(crs_file).unwrap();
     let finalization_hint: usize = 1 << 24;
 
@@ -126,13 +126,13 @@ pub fn gpu_snark_prove(
     // Recreate stuff from prove_plonk_snark_wrapper_step
 
     let input_vk = compression_vk.clone();
-    stages.step("snark_init_context")?;
+    stages.step("snark_init_context").ok()?;
     let mut ctx = PlonkSnarkWrapper::init_context(&crs_mons)
         .unwrap()
         .into_inner();
     let fixed_parameters = input_vk.fixed_parameters.clone();
 
-    stages.step("snark_build_circuit")?;
+    stages.step("snark_build_circuit").ok()?;
     let wrapper_function = SnarkWrapperFunction;
     let circuit = SnarkWrapperCircuit {
         witness: Some(input_proof),
@@ -151,18 +151,18 @@ pub fn gpu_snark_prove(
 
     let mut proving_assembly = PlonkAssembly::<SynthesisModeProve>::new();
 
-    stages.step("snark_synthesize")?;
+    stages.step("snark_synthesize").ok()?;
     circuit
         .synthesize(&mut proving_assembly)
         .expect("must work");
 
     let precomputation: &AsyncSetup = precomputation.into_inner_ref();
 
-    stages.step("snark_is_satisfied")?;
+    stages.step("snark_is_satisfied").ok()?;
     assert!(proving_assembly.is_satisfied());
     assert!(finalization_hint.is_power_of_two());
 
-    stages.step("snark_finalize")?;
+    stages.step("snark_finalize").ok()?;
     if use_zk {
         println!("using zk (padding) proving");
         const NUM_PADDING_TERMS: usize = 2 + 2 + 2; // worst case witness polys are opened at 2 points, plus there are
@@ -183,7 +183,7 @@ pub fn gpu_snark_prove(
 
     let worker = zksync_gpu_prover::bellman::worker::Worker::new();
     let start = std::time::Instant::now();
-    stages.step("snark_prove")?;
+    stages.step("snark_prove").ok()?;
     let proof = zksync_gpu_prover::create_proof_cancellable::<
         _,
         _,
