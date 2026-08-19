@@ -67,11 +67,11 @@ overflow-checks = true
 # proving entry points. Only takes effect when this workspace is the build root; the
 # prover repo carries the same block for its own graph.
 [patch.crates-io]
-boojum-cuda = { git = "https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git", branch = "feature/snark_stage_observability" }
-era_cudart = { git = "https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git", branch = "feature/snark_stage_observability" }
-era_cudart_sys = { git = "https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git", branch = "feature/snark_stage_observability" }
-fflonk-cuda = { git = "https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git", branch = "feature/snark_stage_observability" }
-proof-compression = { git = "https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git", branch = "feature/snark_stage_observability" }
-shivini = { git = "https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git", branch = "feature/snark_stage_observability" }
-zksync-gpu-ffi = { git = "https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git", branch = "feature/snark_stage_observability" }
-zksync-gpu-prover = { git = "https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git", branch = "feature/snark_stage_observability" }
+boojum-cuda = { git = "https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git", tag = "v0.155.2-b1" }
+era_cudart = { git = "https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git", tag = "v0.155.2-b1" }
+era_cudart_sys = { git = "https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git", tag = "v0.155.2-b1" }
+fflonk-cuda = { git = "https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git", tag = "v0.155.2-b1" }
+proof-compression = { git = "https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git", tag = "v0.155.2-b1" }
+shivini = { git = "https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git", tag = "v0.155.2-b1" }
+zksync-gpu-ffi = { git = "https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git", tag = "v0.155.2-b1" }
+zksync-gpu-prover = { git = "https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git", tag = "v0.155.2-b1" }

@@ -363,7 +363,7 @@ dependencies = [
 [[package]]
 name = "boojum-cuda"
 version = "0.155.2"
-source = "git+https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git?branch=feature%2Fsnark_stage_observability#e6572702af4d8d42e733b44ccd3421910e198f1a"
+source = "git+https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git?tag=v0.155.2-b1#63a5b32ceaa6210bcf09e9463fb48ce5cc33226f"
 dependencies = [
  "boojum",
  "cmake",
@@ -863,7 +863,7 @@ checksum = "877a4ace8713b0bcf2a4e7eec82529c029f1d0619886d18145fea96c3ffe5c0f"
 [[package]]
 name = "era_cudart"
 version = "0.155.2"
-source = "git+https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git?branch=feature%2Fsnark_stage_observability#e6572702af4d8d42e733b44ccd3421910e198f1a"
+source = "git+https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git?tag=v0.155.2-b1#63a5b32ceaa6210bcf09e9463fb48ce5cc33226f"
 dependencies = [
  "bitflags",
  "era_cudart_sys",
@@ -873,7 +873,7 @@ dependencies = [
 [[package]]
 name = "era_cudart_sys"
 version = "0.155.2"
-source = "git+https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git?branch=feature%2Fsnark_stage_observability#e6572702af4d8d42e733b44ccd3421910e198f1a"
+source = "git+https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git?tag=v0.155.2-b1#63a5b32ceaa6210bcf09e9463fb48ce5cc33226f"
 dependencies = [
  "regex-lite",
 ]
@@ -954,7 +954,7 @@ dependencies = [
 [[package]]
 name = "fflonk-cuda"
 version = "0.155.2"
-source = "git+https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git?branch=feature%2Fsnark_stage_observability#e6572702af4d8d42e733b44ccd3421910e198f1a"
+source = "git+https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git?tag=v0.155.2-b1#63a5b32ceaa6210bcf09e9463fb48ce5cc33226f"
 dependencies = [
  "bincode",
  "byteorder",
@@ -1954,7 +1954,7 @@ dependencies = [
 [[package]]
 name = "proof-compression"
 version = "0.155.2"
-source = "git+https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git?branch=feature%2Fsnark_stage_observability#e6572702af4d8d42e733b44ccd3421910e198f1a"
+source = "git+https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git?tag=v0.155.2-b1#63a5b32ceaa6210bcf09e9463fb48ce5cc33226f"
 dependencies = [
  "anyhow",
  "bincode",
@@ -2535,7 +2535,7 @@ dependencies = [
 [[package]]
 name = "shivini"
 version = "0.155.2"
-source = "git+https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git?branch=feature%2Fsnark_stage_observability#e6572702af4d8d42e733b44ccd3421910e198f1a"
+source = "git+https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git?tag=v0.155.2-b1#63a5b32ceaa6210bcf09e9463fb48ce5cc33226f"
 dependencies = [
  "bincode",
  "boojum",
@@ -2549,6 +2549,7 @@ dependencies = [
  "rand 0.8.5",
  "serde",
  "smallvec",
+ "tracing",
  "zksync-prover-stages",
 ]
 
@@ -2703,6 +2704,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "syn"
+version = "3.0.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "53e9bae58849f64dfa4f5d5ae372c8341f7305f82a3868709269343628b659a3"
+dependencies = [
+ "proc-macro2 1.0.103",
+ "quote 1.0.42",
+ "unicode-ident",
+]
+
+[[package]]
 name = "tap"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2713,6 +2725,26 @@ name = "thin-vec"
 version = "0.2.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "144f754d318415ac792f9d69fc87abbbfc043ce2ef041c60f16ad828f638717d"
+
+[[package]]
+name = "thiserror"
+version = "2.0.20"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ec86235f5fcc2a73650310756d2ac5b138a5780bbbdfae3eeccec992c435ba4f"
+dependencies = [
+ "thiserror-impl",
+]
+
+[[package]]
+name = "thiserror-impl"
+version = "2.0.20"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bc04cd3e1236dd4a98afca4569f2deb3f120e5422a4023be2cb683f8486292af"
+dependencies = [
+ "proc-macro2 1.0.103",
+ "quote 1.0.42",
+ "syn 3.0.3",
+]
 
 [[package]]
 name = "tiny-keccak"
@@ -3209,7 +3241,7 @@ dependencies = [
 [[package]]
 name = "zksync-gpu-ffi"
 version = "0.155.2"
-source = "git+https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git?branch=feature%2Fsnark_stage_observability#e6572702af4d8d42e733b44ccd3421910e198f1a"
+source = "git+https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git?tag=v0.155.2-b1#63a5b32ceaa6210bcf09e9463fb48ce5cc33226f"
 dependencies = [
  "cmake",
  "crossbeam",
@@ -3223,7 +3255,7 @@ dependencies = [
 [[package]]
 name = "zksync-gpu-prover"
 version = "0.155.2"
-source = "git+https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git?branch=feature%2Fsnark_stage_observability#e6572702af4d8d42e733b44ccd3421910e198f1a"
+source = "git+https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git?tag=v0.155.2-b1#63a5b32ceaa6210bcf09e9463fb48ce5cc33226f"
 dependencies = [
  "bit-vec 0.6.3",
  "cfg-if",
@@ -3240,8 +3272,9 @@ dependencies = [
 [[package]]
 name = "zksync-prover-stages"
 version = "0.155.2"
-source = "git+https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git?branch=feature%2Fsnark_stage_observability#e6572702af4d8d42e733b44ccd3421910e198f1a"
+source = "git+https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git?tag=v0.155.2-b1#63a5b32ceaa6210bcf09e9463fb48ce5cc33226f"
 dependencies = [
+ "thiserror",
  "tracing",
 ]
 
