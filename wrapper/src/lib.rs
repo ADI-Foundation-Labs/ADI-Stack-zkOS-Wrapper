@@ -955,6 +955,8 @@ pub fn generate_risk_wrapper_vk(
         aux_params,
     };
 
+    // Its own run, so its own timer. The error type is open, so a cancel is returned
+    // rather than resting on "nobody calls `cancel::request()` before this point".
     #[cfg(feature = "gpu")]
     let (_, risc_wrapper_vk, _) = {
         let mut stages = StageTimer::new();
@@ -964,7 +966,7 @@ pub fn generate_risk_wrapper_vk(
             &mut stages,
         );
         stages.finish();
-        setup.expect("cancellation is disabled")
+        setup?
     };
 
     #[cfg(not(feature = "gpu"))]
