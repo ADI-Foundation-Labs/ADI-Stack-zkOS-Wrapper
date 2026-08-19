@@ -25,9 +25,8 @@ impl GpuContextConfig {
     pub fn from_env() -> Self {
         match std::env::var(MAX_DEVICE_ALLOCATION_ENV) {
             Ok(raw) => {
-                let bytes = parse_byte_size(&raw).unwrap_or_else(|e| {
-                    panic!("invalid {MAX_DEVICE_ALLOCATION_ENV}={raw:?}: {e}")
-                });
+                let bytes = parse_byte_size(&raw)
+                    .unwrap_or_else(|e| panic!("invalid {MAX_DEVICE_ALLOCATION_ENV}={raw:?}: {e}"));
                 Self::default().with_max_device_allocation(bytes)
             }
             Err(_) => Self::default(),
@@ -43,7 +42,11 @@ impl GpuContextConfig {
 /// - `Ki`/`Mi`/`Gi`/`Ti` (optionally with trailing `B`) → binary (2^10, 2^20, 2^30, 2^40)
 /// - Whitespace and case are ignored.
 pub fn parse_byte_size(input: &str) -> Result<usize, String> {
-    let trimmed: String = input.trim().chars().filter(|c| !c.is_whitespace()).collect();
+    let trimmed: String = input
+        .trim()
+        .chars()
+        .filter(|c| !c.is_whitespace())
+        .collect();
     if trimmed.is_empty() {
         return Err("empty value".into());
     }
