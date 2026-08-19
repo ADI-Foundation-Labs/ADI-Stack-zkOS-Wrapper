@@ -47,6 +47,7 @@ serde = { version = "1", default-features = false, features = [
 clap = { version = "4.5.21", features = ["derive"] }
 sha3 = "0.10"
 rand = "0.8"
+thiserror = "2"
 
 # Used for GPU proving.
 shivini = "=0.155.2"
@@ -62,3 +63,16 @@ overflow-checks = true
 lto = false
 # This is needed for zksync-airbender crates to compile in a reasonable time for x86-64-unknown-linux-gnu
 overflow-checks = true
+
+# Build against the ADI fork, which carries the per-stage reporting and the cancellable
+# proving entry points. Only takes effect when this workspace is the build root; the
+# prover repo carries the same block for its own graph.
+[patch.crates-io]
+boojum-cuda = { git = "https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git", tag = "v0.155.2-b2" }
+era_cudart = { git = "https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git", tag = "v0.155.2-b2" }
+era_cudart_sys = { git = "https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git", tag = "v0.155.2-b2" }
+fflonk-cuda = { git = "https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git", tag = "v0.155.2-b2" }
+proof-compression = { git = "https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git", tag = "v0.155.2-b2" }
+shivini = { git = "https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git", tag = "v0.155.2-b2" }
+zksync-gpu-ffi = { git = "https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git", tag = "v0.155.2-b2" }
+zksync-gpu-prover = { git = "https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git", tag = "v0.155.2-b2" }

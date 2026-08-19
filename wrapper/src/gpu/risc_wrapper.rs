@@ -15,7 +15,8 @@ use shivini::{
     ProverContext,
     cs::{GpuSetup, gpu_setup_and_vk_from_base_setup_vk_params_and_hints},
     gpu_proof_config::GpuProofConfig,
-    gpu_prove_from_external_witness_data,
+    gpu_prove_from_external_witness_data_cancellable,
+    prover_stages::{Cancelled, StageTimer},
 };
 
 use crate::{
@@ -25,19 +26,25 @@ use crate::{
 
 type GL = GoldilocksField;
 
+/// The stage timer is the caller's, so a cancel arriving between phases is not lost to a
+/// fresh baseline — see [`crate::prove_cancellable`].
 pub fn get_risc_wrapper_setup(
     worker: &Worker,
     binary_commitment: BinaryCommitment,
-) -> (
-    GpuSetup<RiscWrapperTreeHasher>,
-    RiscWrapperVK,
-    FinalizationHintsForProver,
-) {
+    stages: &mut StageTimer,
+) -> Result<
+    (
+        GpuSetup<RiscWrapperTreeHasher>,
+        RiscWrapperVK,
+        FinalizationHintsForProver,
+    ),
+    Cancelled,
+> {
     let start = std::time::Instant::now();
 
+    stages.step("setup_gpu_context")?;
     // Currently the GPU context is initialized here, but it should be done at a higher level.
-    let _prover_context =
-        ProverContext::create_with_config(build_prover_context_config()).unwrap();
+    let _prover_context = ProverContext::create_with_config(build_prover_context_config()).unwrap();
 
     let verify_inner_proof: bool = false;
     let circuit = RiscWrapper::new(None, verify_inner_proof, binary_commitment);
@@ -54,7 +61,11 @@ pub fn get_risc_wrapper_setup(
     let builder = RiscWrapper::configure_builder(builder);
     let mut cs = builder.build(num_vars.unwrap());
     circuit.add_tables(&mut cs);
+
+    stages.step("setup_synthesize")?;
     circuit.synthesize_into_cs(&mut cs);
+
+    stages.step("setup_pad_and_shrink")?;
     let (_, finalization_hint) = cs.pad_and_shrink();
 
     let ProofConfig {
@@ -62,11 +73,14 @@ pub fn get_risc_wrapper_setup(
         merkle_tree_cap_size,
         ..
     } = RiscWrapper::get_proof_config();
+    stages.step("setup_into_assembly")?;
     let cs = cs.into_assembly::<std::alloc::Global>();
 
+    stages.step("setup_light_setup")?;
     let (setup_base, vk_params, vars_hint, witness_hints) =
         cs.get_light_setup(worker, fri_lde_factor, merkle_tree_cap_size);
 
+    stages.step("setup_gpu_setup_and_vk")?;
     let (gpu_setup, gpu_vk) =
         gpu_setup_and_vk_from_base_setup_vk_params_and_hints::<RiscWrapperTreeHasher, _>(
             setup_base.clone(),
@@ -82,9 +96,10 @@ pub fn get_risc_wrapper_setup(
         start.elapsed().as_millis()
     );
 
-    (gpu_setup, gpu_vk, finalization_hint)
+    Ok((gpu_setup, gpu_vk, finalization_hint))
 }
 
+/// The stage timer is the caller's — see [`get_risc_wrapper_setup`].
 pub fn prove_risc_wrapper(
     risc_wrapper_witness: RiscWrapperWitness,
     finalization_hint: &FinalizationHintsForProver,
@@ -92,12 +107,13 @@ pub fn prove_risc_wrapper(
     gpu_vk: &RiscWrapperVK,
     worker: &Worker,
     binary_commitment: BinaryCommitment,
-) -> RiscWrapperProof {
+    stages: &mut StageTimer,
+) -> Result<RiscWrapperProof, Cancelled> {
     let start = std::time::Instant::now();
 
+    stages.step("prove_gpu_context")?;
     // Currently the GPU context is initialized here, but it should be done at a higher level.
-    let _prover_context =
-        ProverContext::create_with_config(build_prover_context_config()).unwrap();
+    let _prover_context = ProverContext::create_with_config(build_prover_context_config()).unwrap();
 
     let verify_inner_proof = true;
     let circuit = RiscWrapper::new(
@@ -118,17 +134,25 @@ pub fn prove_risc_wrapper(
     let builder = RiscWrapper::configure_builder(builder);
     let mut cs = builder.build(num_vars.unwrap());
     circuit.add_tables(&mut cs);
+
+    stages.step("prove_synthesize")?;
     circuit.synthesize_into_cs(&mut cs);
+
+    stages.step("prove_pad_and_shrink")?;
     cs.pad_and_shrink_using_hint(finalization_hint);
+
+    stages.step("prove_into_assembly")?;
     let cs = cs.into_assembly::<std::alloc::Global>();
 
+    // Covers preparing the inputs only — shivini reports its own stages onto this timer.
+    stages.step("prove_gpu")?;
     let gpu_proof_config = GpuProofConfig::from_assembly(&cs);
 
     let external_witness_data = cs.witness.unwrap();
 
     let proof_config = RiscWrapper::get_proof_config();
 
-    let proof = gpu_prove_from_external_witness_data::<
+    let proof = gpu_prove_from_external_witness_data_cancellable::<
         RiscWrapperTranscript,
         RiscWrapperTreeHasher,
         NoPow,
@@ -141,13 +165,15 @@ pub fn prove_risc_wrapper(
         &gpu_vk,
         (),
         worker,
+        stages,
     )
-    .unwrap();
+    .unwrap()
+    .ok_or(Cancelled { stage: "prove_gpu" })?;
 
     println!(
         "risc wrapper proving takes {} ms",
         start.elapsed().as_millis()
     );
 
-    proof.into()
+    Ok(proof.into())
 }
