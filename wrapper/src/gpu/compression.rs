@@ -151,7 +151,7 @@ pub fn prove_compression(
     stages.step("compression_prove_into_assembly")?;
     let cs = cs.into_assembly::<std::alloc::Global>();
 
-    // shivini opens its own timeline inside the call below — see `risc_wrapper::prove_risc_wrapper`.
+    // Covers preparing the inputs only — shivini reports its own stages onto this timer.
     stages.step("compression_prove_gpu")?;
     let gpu_proof_config = GpuProofConfig::from_assembly(&cs);
 
@@ -172,6 +172,7 @@ pub fn prove_compression(
         &gpu_vk,
         (),
         worker,
+        stages,
     )
     .unwrap()
     .ok_or(Cancelled {

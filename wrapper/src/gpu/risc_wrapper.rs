@@ -144,9 +144,7 @@ pub fn prove_risc_wrapper(
     stages.step("prove_into_assembly")?;
     let cs = cs.into_assembly::<std::alloc::Global>();
 
-    // shivini opens its own timeline inside the call below, so this stage's duration is the
-    // sum of the stages it reports. One timeline per proof needs a `&mut StageTimer` on
-    // shivini's public entry point.
+    // Covers preparing the inputs only — shivini reports its own stages onto this timer.
     stages.step("prove_gpu")?;
     let gpu_proof_config = GpuProofConfig::from_assembly(&cs);
 
@@ -167,6 +165,7 @@ pub fn prove_risc_wrapper(
         &gpu_vk,
         (),
         worker,
+        stages,
     )
     .unwrap()
     .ok_or(Cancelled { stage: "prove_gpu" })?;

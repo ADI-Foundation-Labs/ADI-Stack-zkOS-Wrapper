@@ -363,7 +363,7 @@ dependencies = [
 [[package]]
 name = "boojum-cuda"
 version = "0.155.2"
-source = "git+https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git?tag=v0.155.2-b1#63a5b32ceaa6210bcf09e9463fb48ce5cc33226f"
+source = "git+https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git?tag=v0.155.2-b2#c03a6bd6f9e11830ad3767c9063f74bec4593c2b"
 dependencies = [
  "boojum",
  "cmake",
@@ -863,7 +863,7 @@ checksum = "877a4ace8713b0bcf2a4e7eec82529c029f1d0619886d18145fea96c3ffe5c0f"
 [[package]]
 name = "era_cudart"
 version = "0.155.2"
-source = "git+https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git?tag=v0.155.2-b1#63a5b32ceaa6210bcf09e9463fb48ce5cc33226f"
+source = "git+https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git?tag=v0.155.2-b2#c03a6bd6f9e11830ad3767c9063f74bec4593c2b"
 dependencies = [
  "bitflags",
  "era_cudart_sys",
@@ -873,7 +873,7 @@ dependencies = [
 [[package]]
 name = "era_cudart_sys"
 version = "0.155.2"
-source = "git+https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git?tag=v0.155.2-b1#63a5b32ceaa6210bcf09e9463fb48ce5cc33226f"
+source = "git+https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git?tag=v0.155.2-b2#c03a6bd6f9e11830ad3767c9063f74bec4593c2b"
 dependencies = [
  "regex-lite",
 ]
@@ -954,7 +954,7 @@ dependencies = [
 [[package]]
 name = "fflonk-cuda"
 version = "0.155.2"
-source = "git+https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git?tag=v0.155.2-b1#63a5b32ceaa6210bcf09e9463fb48ce5cc33226f"
+source = "git+https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git?tag=v0.155.2-b2#c03a6bd6f9e11830ad3767c9063f74bec4593c2b"
 dependencies = [
  "bincode",
  "byteorder",
@@ -1954,7 +1954,7 @@ dependencies = [
 [[package]]
 name = "proof-compression"
 version = "0.155.2"
-source = "git+https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git?tag=v0.155.2-b1#63a5b32ceaa6210bcf09e9463fb48ce5cc33226f"
+source = "git+https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git?tag=v0.155.2-b2#c03a6bd6f9e11830ad3767c9063f74bec4593c2b"
 dependencies = [
  "anyhow",
  "bincode",
@@ -2535,7 +2535,7 @@ dependencies = [
 [[package]]
 name = "shivini"
 version = "0.155.2"
-source = "git+https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git?tag=v0.155.2-b1#63a5b32ceaa6210bcf09e9463fb48ce5cc33226f"
+source = "git+https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git?tag=v0.155.2-b2#c03a6bd6f9e11830ad3767c9063f74bec4593c2b"
 dependencies = [
  "bincode",
  "boojum",
@@ -3242,7 +3242,7 @@ dependencies = [
 [[package]]
 name = "zksync-gpu-ffi"
 version = "0.155.2"
-source = "git+https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git?tag=v0.155.2-b1#63a5b32ceaa6210bcf09e9463fb48ce5cc33226f"
+source = "git+https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git?tag=v0.155.2-b2#c03a6bd6f9e11830ad3767c9063f74bec4593c2b"
 dependencies = [
  "cmake",
  "crossbeam",
@@ -3256,7 +3256,7 @@ dependencies = [
 [[package]]
 name = "zksync-gpu-prover"
 version = "0.155.2"
-source = "git+https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git?tag=v0.155.2-b1#63a5b32ceaa6210bcf09e9463fb48ce5cc33226f"
+source = "git+https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git?tag=v0.155.2-b2#c03a6bd6f9e11830ad3767c9063f74bec4593c2b"
 dependencies = [
  "bit-vec 0.6.3",
  "cfg-if",
@@ -3273,7 +3273,7 @@ dependencies = [
 [[package]]
 name = "zksync-prover-stages"
 version = "0.155.2"
-source = "git+https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git?tag=v0.155.2-b1#63a5b32ceaa6210bcf09e9463fb48ce5cc33226f"
+source = "git+https://github.com/ADI-Foundation-Labs/ADI-Stack-Lib-Crypto-GPU.git?tag=v0.155.2-b2#c03a6bd6f9e11830ad3767c9063f74bec4593c2b"
 dependencies = [
  "thiserror",
  "tracing",

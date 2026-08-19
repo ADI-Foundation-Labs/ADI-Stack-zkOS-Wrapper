@@ -184,14 +184,21 @@ pub fn gpu_snark_prove(
 
     let worker = zksync_gpu_prover::bellman::worker::Worker::new();
 
-    // bellman opens its own timeline inside the call below — see `risc_wrapper::prove_risc_wrapper`.
+    // Covers the setup only — bellman reports its seven rounds onto this timer.
     stages.step("snark_prove")?;
     let proof = zksync_gpu_prover::create_proof_cancellable::<
         _,
         _,
         <PlonkSnarkWrapper as ProofSystemDefinition>::Transcript,
         _,
-    >(&proving_assembly, &mut ctx, &worker, precomputation, None)
+    >(
+        &proving_assembly,
+        &mut ctx,
+        &worker,
+        precomputation,
+        None,
+        stages,
+    )
     .unwrap()
     .ok_or(Cancelled {
         stage: "snark_prove",
