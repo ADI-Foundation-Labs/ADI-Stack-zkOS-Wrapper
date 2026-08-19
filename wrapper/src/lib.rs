@@ -11,7 +11,7 @@ pub mod wrapper_utils;
 
 pub use gpu_config::GpuContextConfig;
 #[cfg(feature = "gpu")]
-pub use shivini::prover_stages::cancel;
+pub use shivini::prover_stages::{Cancelled, StageTimer, cancel};
 
 #[cfg(feature = "gpu")]
 pub mod gpu;
@@ -511,6 +511,42 @@ pub fn deserialize_from_file<T: serde::de::DeserializeOwned>(filename: &str) -> 
     serde_json::from_reader(src).unwrap()
 }
 
+/// Why a proving run stopped before producing a proof.
+#[derive(Debug, thiserror::Error)]
+pub enum ProveError {
+    /// A cancel was requested through `cancel::request`; the run stopped at this boundary.
+    #[error("proving cancelled at stage `{stage}`")]
+    Cancelled {
+        /// The stage that was about to run.
+        stage: &'static str,
+    },
+    /// The run failed.
+    #[error("proving failed: {0}")]
+    Failed(Box<dyn std::error::Error>),
+}
+
+impl From<Box<dyn std::error::Error>> for ProveError {
+    fn from(err: Box<dyn std::error::Error>) -> Self {
+        Self::Failed(err)
+    }
+}
+
+impl From<&str> for ProveError {
+    fn from(message: &str) -> Self {
+        Self::Failed(message.into())
+    }
+}
+
+#[cfg(feature = "gpu")]
+impl From<Cancelled> for ProveError {
+    fn from(cancelled: Cancelled) -> Self {
+        Self::Cancelled {
+            stage: cancelled.stage,
+        }
+    }
+}
+
+/// The stage timer is the caller's — see [`prove_cancellable`].
 pub fn prove_risc_wrapper_with_snark(
     risc_wrapper_proof: RiscWrapperProof,
     risc_wrapper_vk: RiscWrapperVK,
@@ -522,24 +558,24 @@ pub fn prove_risc_wrapper_with_snark(
     // TODO!: Remove by end of Q4 2025.
     // Currently in place to allow a easy revert in case ZK proving causes issues.
     use_zk: bool,
-) -> Result<Option<(SnarkWrapperProof, SnarkWrapperVK)>, Box<dyn std::error::Error>> {
+    #[cfg(feature = "gpu")] stages: &mut StageTimer,
+) -> Result<(SnarkWrapperProof, SnarkWrapperVK), ProveError> {
     let worker = boojum::worker::Worker::new();
     println!("=== Phase 2: Creating compression proof");
 
     #[cfg(feature = "gpu")]
     let (compression_proof, compression_vk) = {
         let (setup, compression_vk, finalization) =
-            gpu::compression::get_compression_setup(&worker, risc_wrapper_vk.clone());
-        let Some(compression_proof) = gpu::compression::prove_compression(
+            gpu::compression::get_compression_setup(&worker, risc_wrapper_vk.clone(), stages)?;
+        let compression_proof = gpu::compression::prove_compression(
             risc_wrapper_proof,
             risc_wrapper_vk.clone(),
             &finalization,
             &setup,
             &compression_vk,
             &worker,
-        ) else {
-            return Ok(None);
-        };
+            stages,
+        )?;
         (compression_proof, compression_vk)
     };
     #[cfg(not(feature = "gpu"))]
@@ -568,6 +604,8 @@ pub fn prove_risc_wrapper_with_snark(
         (compression_proof, compression_vk)
     };
 
+    #[cfg(feature = "gpu")]
+    stages.step("verify_compression")?;
     let is_valid = verify_compression_proof(&compression_proof, &compression_vk);
 
     if !is_valid {
@@ -590,23 +628,23 @@ pub fn prove_risc_wrapper_with_snark(
                 (setup_data, vk)
             }
             None => {
+                stages.step("snark_setup_data")?;
                 precompute_store =
                     gpu::snark::gpu_create_snark_setup_data(&compression_vk, &crs_file);
                 (&precompute_store.0, &precompute_store.1)
             }
         };
 
-        let Some(proof) = crate::gpu::snark::gpu_snark_prove(
+        let proof = crate::gpu::snark::gpu_snark_prove(
             setup_data,
             vk,
             compression_proof,
             compression_vk,
             &crs_file,
             use_zk,
-        ) else {
-            return Ok(None);
-        };
-        Ok(Some((proof, vk.clone())))
+            stages,
+        )?;
+        Ok((proof, vk.clone()))
     }
     #[cfg(not(feature = "gpu"))]
     {
@@ -638,14 +676,16 @@ pub fn prove_risc_wrapper_with_snark(
             if !is_valid {
                 return Err("Snark wrapper proof is not valid".into());
             }
-            Ok(Some((snark_wrapper_proof, snark_wrapper_vk)))
+            Ok((snark_wrapper_proof, snark_wrapper_vk))
         }
     }
 }
 
+/// The stage timer is the caller's — see [`prove_cancellable`].
 pub fn prove_fri_risc_wrapper(
     program_proof: ProgramProof,
-) -> Result<Option<(RiscWrapperProof, RiscWrapperVK)>, Box<dyn std::error::Error>> {
+    #[cfg(feature = "gpu")] stages: &mut StageTimer,
+) -> Result<(RiscWrapperProof, RiscWrapperVK), ProveError> {
     println!("=== Phase 1: Creating the Risc wrapper proof");
 
     let worker = boojum::worker::Worker::new();
@@ -661,21 +701,17 @@ pub fn prove_fri_risc_wrapper(
 
     #[cfg(feature = "gpu")]
     let (risc_wrapper_proof, risc_wrapper_vk) = {
-        let Some((setup, risc_wrapper_vk, finalization_hint)) =
-            crate::gpu::risc_wrapper::get_risc_wrapper_setup(&worker, binary_commitment)
-        else {
-            return Ok(None);
-        };
-        let Some(risc_wrapper_proof) = crate::gpu::risc_wrapper::prove_risc_wrapper(
+        let (setup, risc_wrapper_vk, finalization_hint) =
+            crate::gpu::risc_wrapper::get_risc_wrapper_setup(&worker, binary_commitment, stages)?;
+        let risc_wrapper_proof = crate::gpu::risc_wrapper::prove_risc_wrapper(
             risc_wrapper_witness,
             &finalization_hint,
             &setup,
             &risc_wrapper_vk,
             &worker,
             binary_commitment,
-        ) else {
-            return Ok(None);
-        };
+            stages,
+        )?;
         (risc_wrapper_proof, risc_wrapper_vk)
     };
 
@@ -706,12 +742,14 @@ pub fn prove_fri_risc_wrapper(
         (risc_wrapper_proof, risc_wrapper_vk)
     };
 
+    #[cfg(feature = "gpu")]
+    stages.step("verify_risc_wrapper")?;
     let is_valid = verify_risc_wrapper_proof(&risc_wrapper_proof, &risc_wrapper_vk);
     if !is_valid {
         return Err("Risc wrapper proof is not valid".into());
     }
 
-    Ok(Some((risc_wrapper_proof, risc_wrapper_vk)))
+    Ok((risc_wrapper_proof, risc_wrapper_vk))
 }
 
 pub fn prove(
@@ -728,8 +766,8 @@ pub fn prove(
     use_zk: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {
     // A cancel is process-wide, so it can land in here too; report it rather than panic.
-    // The stage that stopped is named in the log line the checkpoint already wrote.
-    prove_cancellable(
+    // `ProveError::Cancelled` names the stage it stopped at.
+    prove_timed(
         input,
         output_dir,
         trusted_setup_file,
@@ -737,12 +775,13 @@ pub fn prove(
         #[cfg(feature = "gpu")]
         precomputations,
         use_zk,
-    )?
-    .ok_or_else(|| "proving was cancelled at a stage boundary".into())
+    )?;
+
+    Ok(())
 }
 
 /// As [`prove`], but returns `None` when proving stopped at a stage boundary because a
-/// cancel was requested through [`shivini::prover_stages::cancel`].
+/// cancel was requested through `cancel::request`. `Err` is a failure, never a cancel.
 pub fn prove_cancellable(
     input: String,
     output_dir: String,
@@ -754,14 +793,90 @@ pub fn prove_cancellable(
     )>,
     use_zk: bool,
 ) -> Result<Option<()>, Box<dyn std::error::Error>> {
+    match prove_timed(
+        input,
+        output_dir,
+        trusted_setup_file,
+        risc_wrapper_only,
+        #[cfg(feature = "gpu")]
+        precomputations,
+        use_zk,
+    ) {
+        Ok(()) => Ok(Some(())),
+        Err(ProveError::Cancelled { .. }) => Ok(None),
+        Err(ProveError::Failed(err)) => Err(err),
+    }
+}
+
+/// Runs the three phases under a **single** stage timer.
+///
+/// One timer per run, not one per phase: [`StageTimer`] captures the cancel generation at
+/// construction, so a cancel landing between two timers would already be in the next one's
+/// baseline and read as stale — dropped rather than delayed.
+fn prove_timed(
+    input: String,
+    output_dir: String,
+    trusted_setup_file: Option<String>,
+    risc_wrapper_only: bool,
+    #[cfg(feature = "gpu")] precomputations: Option<&(
+        PlonkSnarkVerifierCircuitDeviceSetupWrapper,
+        SnarkWrapperVK,
+    )>,
+    use_zk: bool,
+) -> Result<(), ProveError> {
+    #[cfg(feature = "gpu")]
+    {
+        let mut stages = StageTimer::new();
+        let outcome = prove_staged(
+            input,
+            output_dir,
+            trusted_setup_file,
+            risc_wrapper_only,
+            precomputations,
+            use_zk,
+            &mut stages,
+        );
+        // Idempotent and `&mut`, so a cancelled run still reports its total.
+        stages.finish();
+        outcome
+    }
+
+    #[cfg(not(feature = "gpu"))]
+    prove_staged(
+        input,
+        output_dir,
+        trusted_setup_file,
+        risc_wrapper_only,
+        use_zk,
+    )
+}
+
+fn prove_staged(
+    input: String,
+    output_dir: String,
+    trusted_setup_file: Option<String>,
+    risc_wrapper_only: bool,
+    #[cfg(feature = "gpu")] precomputations: Option<&(
+        PlonkSnarkVerifierCircuitDeviceSetupWrapper,
+        SnarkWrapperVK,
+    )>,
+    use_zk: bool,
+    #[cfg(feature = "gpu")] stages: &mut StageTimer,
+) -> Result<(), ProveError> {
+    #[cfg(feature = "gpu")]
+    stages.step("deserialize_input")?;
     let program_proof: crate::ProgramProof = deserialize_from_file(&input);
-    let Some((risc_wrapper_proof, risc_wrapper_vk)) =
-        prove_fri_risc_wrapper(program_proof).unwrap()
-    else {
-        return Ok(None);
-    };
+
+    let (risc_wrapper_proof, risc_wrapper_vk) = prove_fri_risc_wrapper(
+        program_proof,
+        #[cfg(feature = "gpu")]
+        stages,
+    )?;
 
     if risc_wrapper_only {
+        // The proof exists; a cancel arriving now would only throw it away.
+        #[cfg(feature = "gpu")]
+        let _ = stages.enter("serialize_output");
         serialize_to_file(
             &risc_wrapper_vk,
             &Path::new(&output_dir.clone()).join("risc_wrapper_vk.json"),
@@ -770,21 +885,22 @@ pub fn prove_cancellable(
             &risc_wrapper_proof,
             &Path::new(&output_dir.clone()).join("risc_wrapper_proof.json"),
         );
-        return Ok(Some(()));
+        return Ok(());
     }
 
-    let Some((snark_wrapper_proof, snark_wrapper_vk)) = prove_risc_wrapper_with_snark(
+    let (snark_wrapper_proof, snark_wrapper_vk) = prove_risc_wrapper_with_snark(
         risc_wrapper_proof,
         risc_wrapper_vk,
         trusted_setup_file.clone(),
         #[cfg(feature = "gpu")]
         precomputations,
         use_zk,
-    )
-    .unwrap() else {
-        return Ok(None);
-    };
+        #[cfg(feature = "gpu")]
+        stages,
+    )?;
 
+    #[cfg(feature = "gpu")]
+    let _ = stages.enter("serialize_output");
     serialize_to_file(
         &snark_wrapper_proof,
         &Path::new(&output_dir.clone()).join("snark_proof.json"),
@@ -794,7 +910,7 @@ pub fn prove_cancellable(
         &Path::new(&output_dir.clone()).join("snark_vk.json"),
     );
 
-    Ok(Some(()))
+    Ok(())
 }
 
 pub fn generate_and_save_risc_wrapper_vk(
@@ -840,9 +956,16 @@ pub fn generate_risk_wrapper_vk(
     };
 
     #[cfg(feature = "gpu")]
-    let (_, risc_wrapper_vk, _) =
-        crate::gpu::risc_wrapper::get_risc_wrapper_setup(boojum_worker, binary_commitment)
-            .expect("cancellation is disabled");
+    let (_, risc_wrapper_vk, _) = {
+        let mut stages = StageTimer::new();
+        let setup = crate::gpu::risc_wrapper::get_risc_wrapper_setup(
+            boojum_worker,
+            binary_commitment,
+            &mut stages,
+        );
+        stages.finish();
+        setup.expect("cancellation is disabled")
+    };
 
     #[cfg(not(feature = "gpu"))]
     let (_, _, _, risc_wrapper_vk, _, _, _) =

@@ -3234,6 +3234,7 @@ dependencies = [
  "sha3 0.10.8",
  "shivini",
  "snark_wrapper",
+ "thiserror",
  "zksync-gpu-prover",
  "zksync_bellman",
 ]

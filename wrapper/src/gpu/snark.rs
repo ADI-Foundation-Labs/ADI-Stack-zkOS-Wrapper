@@ -4,7 +4,7 @@ use proof_compression::{
     hardcoded_canonical_g2_bases,
     serialization::{GenericWrapper, PlonkSnarkVerifierCircuitDeviceSetupWrapper},
 };
-use shivini::prover_stages::StageTimer;
+use shivini::prover_stages::{Cancelled, StageTimer};
 use zksync_gpu_prover::{
     AsyncSetup,
     bellman::{
@@ -103,6 +103,8 @@ pub fn gpu_create_snark_setup_data(
 }
 
 /// Computes the SnarkProof for a given compression proof.
+///
+/// The stage timer is the caller's — see [`crate::prove_cancellable`].
 pub fn gpu_snark_prove(
     precomputation: &PlonkSnarkVerifierCircuitDeviceSetupWrapper,
     snark_wrapper_vk: &SnarkWrapperVK,
@@ -112,10 +114,9 @@ pub fn gpu_snark_prove(
     // TODO!: Remove by end of Q4 2025.
     // Currently in place to allow a easy revert in case ZK proving causes issues.
     use_zk: bool,
-) -> Option<SnarkWrapperProof> {
-    let mut stages = StageTimer::new();
-
-    stages.step("snark_load_crs").ok()?;
+    stages: &mut StageTimer,
+) -> Result<SnarkWrapperProof, Cancelled> {
+    stages.step("snark_load_crs")?;
     let reader = std::fs::File::open(crs_file).unwrap();
     let finalization_hint: usize = 1 << 24;
 
@@ -126,13 +127,13 @@ pub fn gpu_snark_prove(
     // Recreate stuff from prove_plonk_snark_wrapper_step
 
     let input_vk = compression_vk.clone();
-    stages.step("snark_init_context").ok()?;
+    stages.step("snark_init_context")?;
     let mut ctx = PlonkSnarkWrapper::init_context(&crs_mons)
         .unwrap()
         .into_inner();
     let fixed_parameters = input_vk.fixed_parameters.clone();
 
-    stages.step("snark_build_circuit").ok()?;
+    stages.step("snark_build_circuit")?;
     let wrapper_function = SnarkWrapperFunction;
     let circuit = SnarkWrapperCircuit {
         witness: Some(input_proof),
@@ -151,18 +152,18 @@ pub fn gpu_snark_prove(
 
     let mut proving_assembly = PlonkAssembly::<SynthesisModeProve>::new();
 
-    stages.step("snark_synthesize").ok()?;
+    stages.step("snark_synthesize")?;
     circuit
         .synthesize(&mut proving_assembly)
         .expect("must work");
 
     let precomputation: &AsyncSetup = precomputation.into_inner_ref();
 
-    stages.step("snark_is_satisfied").ok()?;
+    stages.step("snark_is_satisfied")?;
     assert!(proving_assembly.is_satisfied());
     assert!(finalization_hint.is_power_of_two());
 
-    stages.step("snark_finalize").ok()?;
+    stages.step("snark_finalize")?;
     if use_zk {
         println!("using zk (padding) proving");
         const NUM_PADDING_TERMS: usize = 2 + 2 + 2; // worst case witness polys are opened at 2 points, plus there are
@@ -182,17 +183,21 @@ pub fn gpu_snark_prove(
     assert!(domain_size == finalization_hint);
 
     let worker = zksync_gpu_prover::bellman::worker::Worker::new();
-    let start = std::time::Instant::now();
-    stages.step("snark_prove").ok()?;
+
+    // bellman opens its own timeline inside the call below — see `risc_wrapper::prove_risc_wrapper`.
+    stages.step("snark_prove")?;
     let proof = zksync_gpu_prover::create_proof_cancellable::<
         _,
         _,
         <PlonkSnarkWrapper as ProofSystemDefinition>::Transcript,
         _,
     >(&proving_assembly, &mut ctx, &worker, precomputation, None)
-    .unwrap()?;
+    .unwrap()
+    .ok_or(Cancelled {
+        stage: "snark_prove",
+    })?;
 
-    println!("plonk proving takes {} s", start.elapsed().as_secs());
+    stages.step("snark_verify")?;
     ctx.free_all_slots();
 
     let result = zksync_gpu_prover::bellman::plonk::better_better_cs::verifier::verify::<
@@ -205,6 +210,5 @@ pub fn gpu_snark_prove(
     if !result {
         panic!("*** WARNING - SNARK FAILED TO VERIFY ****");
     }
-    stages.finish();
-    Some(proof)
+    Ok(proof)
 }

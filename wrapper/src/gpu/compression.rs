@@ -16,6 +16,7 @@ use shivini::{
     cs::{GpuSetup, gpu_setup_and_vk_from_base_setup_vk_params_and_hints},
     gpu_proof_config::GpuProofConfig,
     gpu_prove_from_external_witness_data_cancellable,
+    prover_stages::{Cancelled, StageTimer},
 };
 
 use crate::{
@@ -25,16 +26,22 @@ use crate::{
 
 type GL = GoldilocksField;
 
+/// The stage timer is the caller's — see [`crate::gpu::risc_wrapper::get_risc_wrapper_setup`].
 pub fn get_compression_setup(
     worker: &Worker,
     risc_wrapper_vk: RiscWrapperVK,
-) -> (
-    GpuSetup<CompressionTreeHasher>,
-    CompressionVK,
-    FinalizationHintsForProver,
-) {
+    stages: &mut StageTimer,
+) -> Result<
+    (
+        GpuSetup<CompressionTreeHasher>,
+        CompressionVK,
+        FinalizationHintsForProver,
+    ),
+    Cancelled,
+> {
     let start = std::time::Instant::now();
 
+    stages.step("compression_setup_gpu_context")?;
     // Currently the GPU context is initialized here, but it should be done at a higher level.
     // For compression circuit, we actually have to set the domain size lower.
     let config = apply_env_overrides(
@@ -56,8 +63,12 @@ pub fn get_compression_setup(
 
     let builder = CompressionCircuit::configure_builder(builder);
     let mut cs = builder.build(num_vars.unwrap());
+
+    stages.step("compression_setup_synthesize")?;
     // compression circuit doesn't have any tables.
     circuit.synthesize_into_cs(&mut cs);
+
+    stages.step("compression_setup_pad_and_shrink")?;
     let (_, finalization_hint) = cs.pad_and_shrink();
 
     let ProofConfig {
@@ -65,11 +76,14 @@ pub fn get_compression_setup(
         merkle_tree_cap_size,
         ..
     } = CompressionCircuit::get_proof_config();
+    stages.step("compression_setup_into_assembly")?;
     let cs = cs.into_assembly::<std::alloc::Global>();
 
+    stages.step("compression_setup_light_setup")?;
     let (setup_base, vk_params, vars_hint, witness_hints) =
         cs.get_light_setup(worker, fri_lde_factor, merkle_tree_cap_size);
 
+    stages.step("compression_setup_gpu_setup_and_vk")?;
     let (gpu_setup, gpu_vk) =
         gpu_setup_and_vk_from_base_setup_vk_params_and_hints::<CompressionTreeHasher, _>(
             setup_base.clone(),
@@ -85,9 +99,10 @@ pub fn get_compression_setup(
         start.elapsed().as_millis()
     );
 
-    (gpu_setup, gpu_vk, finalization_hint)
+    Ok((gpu_setup, gpu_vk, finalization_hint))
 }
 
+/// The stage timer is the caller's — see [`get_compression_setup`].
 pub fn prove_compression(
     risc_wrapper_proof: RiscWrapperProof,
     risc_wrapper_vk: RiscWrapperVK,
@@ -95,9 +110,11 @@ pub fn prove_compression(
     gpu_setup: &GpuSetup<CompressionTreeHasher>,
     gpu_vk: &CompressionVK,
     worker: &Worker,
-) -> Option<CompressionProof> {
+    stages: &mut StageTimer,
+) -> Result<CompressionProof, Cancelled> {
     let start = std::time::Instant::now();
 
+    stages.step("compression_prove_gpu_context")?;
     // Currently the GPU context is initialized here, but it should be done at a higher level.
     // For compression circuit, we actually have to set the domain size lower.
     let config = apply_env_overrides(
@@ -123,11 +140,19 @@ pub fn prove_compression(
 
     let builder = CompressionCircuit::configure_builder(builder);
     let mut cs = builder.build(num_vars.unwrap());
+
+    stages.step("compression_prove_synthesize")?;
     // compression circuit doesn't have any tables.
     circuit.synthesize_into_cs(&mut cs);
+
+    stages.step("compression_prove_pad_and_shrink")?;
     cs.pad_and_shrink_using_hint(finalization_hint);
+
+    stages.step("compression_prove_into_assembly")?;
     let cs = cs.into_assembly::<std::alloc::Global>();
 
+    // shivini opens its own timeline inside the call below — see `risc_wrapper::prove_risc_wrapper`.
+    stages.step("compression_prove_gpu")?;
     let gpu_proof_config = GpuProofConfig::from_assembly(&cs);
 
     let external_witness_data = cs.witness.unwrap();
@@ -148,12 +173,15 @@ pub fn prove_compression(
         (),
         worker,
     )
-    .unwrap()?;
+    .unwrap()
+    .ok_or(Cancelled {
+        stage: "compression_prove_gpu",
+    })?;
 
     println!(
         "compression wrapper proving takes {} ms",
         start.elapsed().as_millis()
     );
 
-    Some(proof.into())
+    Ok(proof.into())
 }
